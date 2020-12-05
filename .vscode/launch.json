@@ -2,17 +2,17 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "HelloWorldFunction",
+      "name": "JobSubmissionFunction",
       "type": "node",
       "request": "attach",
       "address": "localhost",
       "port": 5858,
-      "localRoot": "${workspaceRoot}/.aws-sam/build/HelloWorldFunction",
+      "localRoot": "${workspaceRoot}/.aws-sam/build/JobSubmissionFunction",
       "remoteRoot": "/var/task",
       "protocol": "inspector",
       "stopOnEntry": false,
       "outFiles": [
-        "${workspaceRoot}/.aws-sam/build/HelloWorldFunction/app.js"
+        "${workspaceRoot}/.aws-sam/build/JobSubmissionFunction/app.js"
       ],
       "sourceMaps": true
     }

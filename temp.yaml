@@ -40,7 +40,7 @@ Globals:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
     
 Resources:
-  
+
   JobQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -77,7 +77,7 @@ Resources:
           - Effect: Allow
             Action:
               - sqs:SendMessage
-            Resource: !GetAtt JobQueue.Arn
+            Resource: !GetAtt JobQueue
       Roles:
         - !Ref JobSubmissionFunctionRole
 
@@ -116,7 +116,7 @@ Resources:
 Outputs:
   JobQueue:
     Description: "Job Queue name"
-    Value: !Ref JobQueue
+    Value: !Ref JobQueue    
   JobSubmissionFunction:
     Description: "Job Submission function name"
     Value: !Ref JobSubmissionFunction

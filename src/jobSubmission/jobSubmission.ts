@@ -7,8 +7,9 @@ export class JobSubmission {
   public async handler(event: ConnectEvent, context: Context): Promise<AttributeMap> {
 
     const sqs: AWS.SQS = new AWS.SQS();
-    const params: any = { QueueName: 'connect-modzel-job-queue'};
-    const response: any = await sqs.getQueueUrl(params);
+    // add queue name to ENV
+    const params: AWS.SQS.GetQueueUrlRequest = { QueueName: 'connect-modzel-job-queue'};
+    const response: AWS.SQS.GetQueueUrlResult = await sqs.getQueueUrl(params).promise();
     console.log(response);
 
     return {

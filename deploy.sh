@@ -1,13 +1,13 @@
 #!/bin/bash
 
-deployBucketName="ENTER YOUR BUCKET NAME HERE"
-stackname="sam-lambdas-boilerplate"
-region="us-west-2"
-profile="vf-team2"
+deployBucketName="modzel-cloudformation"
+stackname="modzel-connect-async-job"
+region="us-east-1"
+profile="vf-team7"
 buildOutputPath=".aws-sam/build"
 
-connectInstanceId="de64c87a-d57a-4910-b32e-32b5907abe6b"
-tags="Application=Connect Owner=$profile"
+connectInstanceId="df247932-05d7-449f-9774-9575b95c047f"
+tags="Application=Connect Owner=Modzel"
 parameterOverrides="ConnectInstanceId=$connectInstanceId"
 
 # Package the SAM application
