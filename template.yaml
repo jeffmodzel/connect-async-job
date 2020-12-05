@@ -1,0 +1,109 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: TypeScript SAM Lambdas Boilerplate
+Transform: AWS::Serverless-2016-10-31
+  
+Parameters:
+  PrefixParameter:
+    Type: String
+    Description: "Naming standard prefix to use for resources"
+    Default: "-001-sam-dev-"
+
+  HelloWorldLambdaName:
+    Type: String
+    Description: "Name of the hello world function, without PrefixParameter"
+    Default: "connect-hello-world"
+
+  LambdaProvisionedConcurrentExecutions:
+    Type: String
+    Description: "provisioned concurrency count for function"
+    Default: "2"
+
+  LambdaAlias:
+    Type: String
+    Description: "Alias $LATEST version of Lambda deployed. Needed for provisioning concurrency"
+    Default: "live"
+
+  ConnectInstanceId:
+    Description: Connect Instance Id
+    Type: String
+    Default: ""
+
+Conditions:
+  ConnectInstanceIdDefined: !Not [!Equals ["", !Ref ConnectInstanceId]]
+
+Globals:
+  Function:
+    Timeout: 8
+    Runtime: nodejs12.x
+    Environment:
+      Variables:
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    
+Resources:
+  HelloWorldFunctionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "role${PrefixParameter}${HelloWorldLambdaName}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+  HelloWorldFunctionPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: !Sub "plcy${PrefixParameter}${HelloWorldLambdaName}"
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
+            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      Roles:
+        - !Ref HelloWorldFunctionRole
+
+  HelloWorldFunction:
+    Type: "AWS::Serverless::Function"
+    DependsOn: HelloWorldFunctionPolicy
+    Properties:
+      FunctionName: !Sub "lambda${PrefixParameter}${HelloWorldLambdaName}"
+      # Will publish a Version and create/update Alias `live` to point to it
+      # An alias is needed so that we can use provisioned concurrency
+      AutoPublishAlias: !Ref LambdaAlias
+      # ProvisionedConcurrencyConfig is only allowed here if AutoPublishAlias is set 
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: !Ref LambdaProvisionedConcurrentExecutions
+      CodeUri: src/helloWorld/
+      Handler: handler.handler
+      Role: !GetAtt HelloWorldFunctionRole.Arn
+
+  # allow connect to invoke the function by its alias
+  HelloWorldFunctionConnectPermissionOnAlias:
+    Condition: ConnectInstanceIdDefined
+    Type: AWS::Lambda::Permission
+    # hack, depends on generated resource name. Can't use !Sub
+    DependsOn: "HelloWorldFunctionAliaslive"
+    Properties:
+      FunctionName: !Join
+        - ":"
+        - - !GetAtt HelloWorldFunction.Arn
+          - !Ref LambdaAlias
+      Action: "lambda:InvokeFunction"
+      Principal: connect.amazonaws.com
+      SourceAccount:
+        Ref: "AWS::AccountId"
+      SourceArn: !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/${ConnectInstanceId}"
+
+Outputs:
+  HelloWorldFunction:
+    Description: "Retrieves the name of the hello world function"
+    Value: !Ref HelloWorldFunction

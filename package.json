@@ -1,0 +1,54 @@
+{
+  "name": "connect-async-job",
+  "version": "1.0.0",
+  "description": "Amazon Connect asynchronous jobs",
+  "main": "index.js",
+  "scripts": {
+    "test": "nyc ts-node -P tsconfig.json node_modules/jasmine/bin/jasmine.js",
+    "build": "webpack-cli",
+    "clean": "rimraf .aws-sam/build/* .vscode",
+    "lint": "node node_modules/eslint/bin/eslint.js ./**/*.ts",
+    "prebuild": "rimraf .aws-sam/build/* .vscode",
+    "prewatch": "rimraf .aws-sam/build/* .vscode",
+    "watch": "webpack-cli -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeffmodzel/connect-async-job.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jeffmodzel/connect-async-job/issues"
+  },
+  "homepage": "https://github.com/jeffmodzel/connect-async-job#readme",
+  "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/aws-lambda": "^8.10.64",
+    "@types/jasmine": "^3.6.2",
+    "@types/node": "^14.14.10",
+    "@typescript-eslint/eslint-plugin": "^4.9.0",
+    "@typescript-eslint/parser": "^4.9.0",
+    "aws-sam-webpack-plugin": "^0.7.0",
+    "aws-sdk": "^2.804.0",
+    "aws-sdk-mock": "^5.1.0",
+    "eslint": "^7.15.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-prettier": "^3.2.0",
+    "jasmine": "^3.6.3",
+    "jasmine-reporters": "^2.3.2",
+    "jasmine-ts-console-reporter": "^3.1.1",
+    "nyc": "^15.1.0",
+    "prettier": "^2.2.1",
+    "rimraf": "^3.0.2",
+    "ts-loader": "^8.0.11",
+    "ts-node": "^9.1.0",
+    "typemoq": "^2.1.0",
+    "typescript": "^4.1.2",
+    "webpack": "^5.10.0",
+    "webpack-cli": "^4.2.0"
+  },
+  "dependencies": {
+    "source-map-support": "^0.5.19"
+  }
+}
