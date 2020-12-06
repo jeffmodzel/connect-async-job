@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: TypeScript SAM Lambdas Boilerplate
+Description: SAM TypeScript Lambdas - Connect Async Job POC
 Transform: AWS::Serverless-2016-10-31
   
 Parameters:
@@ -44,7 +44,7 @@ Resources:
   JobQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "connect${PrefixParameter}-job-queue"
+      QueueName: !Sub "connect${PrefixParameter}job-queue"
 
   JobSubmissionFunctionRole:
     Type: "AWS::IAM::Role"
@@ -88,30 +88,33 @@ Resources:
       FunctionName: !Sub "lambda${PrefixParameter}${JobSubmissionLambdaName}"
       # Will publish a Version and create/update Alias `live` to point to it
       # An alias is needed so that we can use provisioned concurrency
-      AutoPublishAlias: !Ref LambdaAlias
+      #AutoPublishAlias: !Ref LambdaAlias
       # ProvisionedConcurrencyConfig is only allowed here if AutoPublishAlias is set 
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: !Ref LambdaProvisionedConcurrentExecutions
+      #ProvisionedConcurrencyConfig:
+      #  ProvisionedConcurrentExecutions: !Ref LambdaProvisionedConcurrentExecutions
       CodeUri: src/jobSubmission/
       Handler: handler.handler
       Role: !GetAtt JobSubmissionFunctionRole.Arn
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref JobQueue
 
   # allow connect to invoke the function by its alias
-  JobSubmissionFunctionConnectPermissionOnAlias:
-    Condition: ConnectInstanceIdDefined
-    Type: AWS::Lambda::Permission
-    # hack, depends on generated resource name. Can't use !Sub
-    DependsOn: "JobSubmissionFunctionAliaslive"
-    Properties:
-      FunctionName: !Join
-        - ":"
-        - - !GetAtt JobSubmissionFunction.Arn
-          - !Ref LambdaAlias
-      Action: "lambda:InvokeFunction"
-      Principal: connect.amazonaws.com
-      SourceAccount:
-        Ref: "AWS::AccountId"
-      SourceArn: !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/${ConnectInstanceId}"
+  # JobSubmissionFunctionConnectPermissionOnAlias:
+  #   Condition: ConnectInstanceIdDefined
+  #   Type: AWS::Lambda::Permission
+  #   # hack, depends on generated resource name. Can't use !Sub
+  #   DependsOn: "JobSubmissionFunctionAliaslive"
+  #   Properties:
+  #     FunctionName: !Join
+  #       - ":"
+  #       - - !GetAtt JobSubmissionFunction.Arn
+  #         - !Ref LambdaAlias
+  #     Action: "lambda:InvokeFunction"
+  #     Principal: connect.amazonaws.com
+  #     SourceAccount:
+  #       Ref: "AWS::AccountId"
+  #     SourceArn: !Sub "arn:aws:connect:${AWS::Region}:${AWS::AccountId}:instance/${ConnectInstanceId}"
 
 Outputs:
   JobQueue:
