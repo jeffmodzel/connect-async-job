@@ -1,15 +1,10 @@
 import {Context, SQSEvent} from 'aws-lambda';
-import {AttributeMap} from '../interfaces';
+import {JobProcess, JobProcessResponse} from './jobProcess';
 
-async function handler(event: SQSEvent, context: Context): Promise<AttributeMap> {
-  console.log('in handler()');
-  console.log(event);
+const jobProcess: JobProcess = new JobProcess();
 
-  const response: any = {
-    done: true
-  };
-
-  return response;
+async function handler(event: SQSEvent, context: Context): Promise<JobProcessResponse> {
+  return await jobProcess.handler(event);
 }
 
 export {handler};

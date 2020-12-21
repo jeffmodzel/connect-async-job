@@ -11,7 +11,7 @@ tags="Application=Connect Owner=Modzel"
 parameterOverrides="ConnectInstanceId=$connectInstanceId"
 
 # Package the SAM application
-cmd="sam package --s3-bucket $deployBucketName --profile $profile --template-file $buildOutputPath/template.yaml --output-template-file $buildOutputPath/template.packaged.yaml"
+cmd="sam package --s3-bucket $deployBucketName --profile $profile --region $region --template-file $buildOutputPath/template.yaml --output-template-file $buildOutputPath/template.packaged.yaml"
 echo $cmd
 ($cmd)
 

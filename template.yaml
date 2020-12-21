@@ -8,11 +8,6 @@ Parameters:
     Description: "Naming standard prefix to use for resources"
     Default: "-modzel-"
 
-  JobSubmissionLambdaName:
-    Type: String
-    Description: "Name of the job submission function, without PrefixParameter"
-    Default: "connect-job-submission"
-
   LambdaProvisionedConcurrentExecutions:
     Type: String
     Description: "provisioned concurrency count for function"
@@ -50,7 +45,7 @@ Resources:
   JobSubmissionFunctionRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Sub "role${PrefixParameter}${JobSubmissionLambdaName}"
+      RoleName: !Sub "role${PrefixParameter}JobSubmission"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -65,7 +60,7 @@ Resources:
   JobSubmissionFunctionPolicy:
     Type: "AWS::IAM::Policy"
     Properties:
-      PolicyName: !Sub "policy${PrefixParameter}${JobSubmissionLambdaName}"
+      PolicyName: !Sub "policy${PrefixParameter}JobSubmission"
       PolicyDocument:
         Statement:
           - Effect: Allow
@@ -86,7 +81,7 @@ Resources:
     Type: "AWS::Serverless::Function"
     DependsOn: JobSubmissionFunctionPolicy
     Properties:
-      FunctionName: !Sub "lambda${PrefixParameter}${JobSubmissionLambdaName}"
+      FunctionName: !Sub "lambda${PrefixParameter}JobSubmission"
       # Will publish a Version and create/update Alias `live` to point to it
       # An alias is needed so that we can use provisioned concurrency
       #AutoPublishAlias: !Ref LambdaAlias
