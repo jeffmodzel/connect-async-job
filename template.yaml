@@ -146,6 +146,12 @@ Resources:
               - sqs:DeleteMessage
               - sqs:GetQueueAttributes
             Resource: !GetAtt JobQueue.Arn
+          - Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt JobTable.Arn
       Roles:
         - !Ref JobProcessFunctionRole
 
@@ -164,15 +170,34 @@ Resources:
             Queue: !GetAtt JobQueue.Arn
             BatchSize: 10
             Enabled: true
+      Environment:
+        Variables:
+          JOB_TABLE: !Ref JobTable
+
+  JobTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: !Sub dynamodb${PrefixParameter}job-table
+      AttributeDefinitions:
+        - AttributeName: JobId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: JobId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
 
 Outputs:
   JobQueue:
     Description: "Job Queue name"
     Value: !Ref JobQueue
+  JobTable:
+    Description: "Job Table"
+    Value: !Ref JobTable
   JobSubmissionFunction:
     Description: "Job Submission function name"
     Value: !Ref JobSubmissionFunction
   JobProcessFunction:
     Description: "Job Process function name"
     Value: !Ref JobProcessFunction
+
     
