@@ -8,6 +8,7 @@ import {LoggerFactory} from '../lib/loggerFactory';
 export interface JobSubmissionResponse {
   success: boolean;
   jobId: string;
+  jobType: string;
 }
 export class JobSubmission {
   logger: winston.Logger;
@@ -24,13 +25,14 @@ export class JobSubmission {
 
     const response: JobSubmissionResponse = {
       success: false,
-      jobId: ''
+      jobId: '',
+      jobType: ''
     };
 
     try {
       const sqs: AWS.SQS = new AWS.SQS();
       const jobId: string = uuidv4();
-      const jobType: string = 'LookupCustomer';
+      const jobType: string = event.Details.Parameters.JobType;
       const queueUrl: string = String(process.env['QUEUE_URL']);
   
       // this is how to get the QueueUrl from the queue name
@@ -60,6 +62,7 @@ export class JobSubmission {
       this.logger.debug(JSON.stringify(result));
 
       response.jobId = jobId;
+      response.jobType = jobType;
       response.success = true;
       this.logger.info(JSON.stringify(response));
     } catch (error) {

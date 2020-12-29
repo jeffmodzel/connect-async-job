@@ -69,15 +69,42 @@ export class JobProcess {
 
   private async executeJobLambda(jobId: string, jobType: string) {
     this.logger.info(`executeJobLambda() ${jobId} ${jobType}`);
-
     switch (jobType) {
       case 'LookupCustomer':
-        this.logger.info('kick off lambda');
+        await this.executeLookupCustomer(jobId);
         break;
       default:
         this.logger.info('unknown job type');
         await this.updateDynamoSetErrorStatus(jobId, `Unknown job type: ${jobType}`);
     }
+
+  }
+
+  private async executeLookupCustomer(jobId: string) {
+    this.logger.info(`executeLookupCustomer() ${jobId}`);
+
+    const arn: string = process.env['JOB_LOOKUP_CUSTOMER'] as string;
+
+    const lambda: AWS.Lambda = new AWS.Lambda();
+
+    const request: any = {
+      JobId: jobId
+    };
+
+    const params: AWS.Lambda.InvocationRequest = {
+      FunctionName: arn,
+      Payload: JSON.stringify(request),
+      InvocationType: 'Event'
+    };
+
+    this.logger.info('before lambda invoke');
+    this.logger.info(JSON.stringify(params));
+
+    const response: AWS.Lambda.InvocationResponse = await lambda.invoke(params).promise();
+
+
+    this.logger.info('after lambda invoke');
+    this.logger.info(JSON.stringify(response));
 
   }
 

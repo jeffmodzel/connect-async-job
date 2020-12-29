@@ -42,6 +42,18 @@ Resources:
     Properties:
       QueueName: !Sub "connect${PrefixParameter}job-queue"
 
+  JobTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: !Sub dynamodb${PrefixParameter}job-table
+      AttributeDefinitions:
+        - AttributeName: JobId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: JobId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
   JobSubmissionFunctionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -152,6 +164,11 @@ Resources:
               - dynamodb:UpdateItem
             Resource:
               - !GetAtt JobTable.Arn
+          - Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource:
+              - !GetAtt JobLookupCustomerFunction.Arn
       Roles:
         - !Ref JobProcessFunctionRole
 
@@ -173,18 +190,57 @@ Resources:
       Environment:
         Variables:
           JOB_TABLE: !Ref JobTable
+          JOB_LOOKUP_CUSTOMER: !GetAtt JobLookupCustomerFunction.Arn
 
-  JobTable:
-    Type: "AWS::DynamoDB::Table"
+  JobLookupCustomerFunction:
+    Type: "AWS::Serverless::Function"
+    DependsOn: JobLookupCustomerFunctionPolicy
     Properties:
-      TableName: !Sub dynamodb${PrefixParameter}job-table
-      AttributeDefinitions:
-        - AttributeName: JobId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: JobId
-          KeyType: HASH
-      BillingMode: PAY_PER_REQUEST
+      FunctionName: !Sub "lambda${PrefixParameter}JobLookupCustomer"
+      Timeout: 120
+      CodeUri: src/jobLookupCustomer/
+      Handler: handler.handler
+      Role: !GetAtt JobLookupCustomerFunctionRole.Arn
+      Environment:
+        Variables:
+          JOB_TABLE: !Ref JobTable
+
+  JobLookupCustomerFunctionPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: !Sub "policy${PrefixParameter}JobLookupCustomer"
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
+            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+          - Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt JobTable.Arn
+      Roles:
+        - !Ref JobLookupCustomerFunctionRole
+
+  JobLookupCustomerFunctionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "role${PrefixParameter}JobLookupCustomer"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
 
 Outputs:
   JobQueue:
@@ -199,5 +255,8 @@ Outputs:
   JobProcessFunction:
     Description: "Job Process function name"
     Value: !Ref JobProcessFunction
+  JobLookupCustomerFunction:
+    Description: "Job Lookup Customer function name"
+    Value: !Ref JobLookupCustomerFunction
 
     
