@@ -20,14 +20,27 @@ export class JobLookupCustomer {
     try {
       const item:any = await this.dynamoService.getJob(event.JobId);
       this.logger.info(JSON.stringify(item));
-      await this.dynamoService.updateStatus(event.JobId, 'In Progress', 'we started it!');
-      this.dynamoService.doSomething();
+      await this.dynamoService.updateStatus(event.JobId, 'In Progress', 'Lookup Customer job started...');
+
+      this.logger.info('Start simulate long running tasks...');
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      const fakeResult: any = {
+        customerId: 123,
+        customerName: 'John Smith',
+        customerStatus: 'Good',
+        someOtherField: 'Some other value'
+      };
+      this.logger.info('End simulate long running tasks');
+
+      await this.dynamoService.updateResult(event.JobId, JSON.stringify(fakeResult));
+      await this.dynamoService.updateStatus(event.JobId, 'Complete', 'Lookup Customer job success');
     } catch (error) {
       this.logger.error('Error occurred in Lambda');
       this.logger.error(error);
+      await this.dynamoService.updateStatus(event.JobId, 'Error', 'Error in JobLookupCustomer.handler()');
     }
 
-    return {success: 'true'};
+    return {'success': 'true'};
   }
 
 }

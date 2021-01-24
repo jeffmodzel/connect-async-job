@@ -106,6 +106,7 @@ Resources:
       Environment:
         Variables:
           QUEUE_URL: !Ref JobQueue
+          LOOKUP_CUSTOMER: !GetAtt JobLookupCustomerFunction.Arn
 
   # allow connect to invoke the function by its alias
   # JobSubmissionFunctionConnectPermissionOnAlias:

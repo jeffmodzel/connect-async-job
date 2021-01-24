@@ -70,7 +70,7 @@ export class JobProcess {
   private async executeJobLambda(jobId: string, jobType: string) {
     this.logger.info(`executeJobLambda() ${jobId} ${jobType}`);
     switch (jobType) {
-      case 'LookupCustomer':
+      case 'LOOKUP_CUSTOMER':
         await this.executeLookupCustomer(jobId);
         break;
       default:
@@ -97,17 +97,14 @@ export class JobProcess {
       InvocationType: 'Event'
     };
 
-    this.logger.info('before lambda invoke');
+    this.logger.info('Invoke lambda with params:');
     this.logger.info(JSON.stringify(params));
-
     const response: AWS.Lambda.InvocationResponse = await lambda.invoke(params).promise();
-
-
-    this.logger.info('after lambda invoke');
+    this.logger.info('Lambda response:');
     this.logger.info(JSON.stringify(response));
-
   }
 
+  // To do refactor to use DynamoService
   private async updateDynamoSetErrorStatus(jobId: string, errorMessage: string) {
     this.logger.info(`updateDynamoSetErrorStatus() ${jobId} ${errorMessage}`);
 

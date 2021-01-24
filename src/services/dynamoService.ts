@@ -13,11 +13,6 @@ export class DynamoService {
     this.logger.info(`Table name: ${this.tableName}`);
   }
 
-  public doSomething(): string {
-    this.logger.info('DynamoService.doSomething()');
-    return 'done';
-  }
-
   public async getJob(jobId: string): Promise<any> {
     this.logger.info(`DynamoService.getJob() ${jobId}`);
 
@@ -41,6 +36,22 @@ export class DynamoService {
       UpdateExpression: 'SET #status = :status, #message = :message, #last = :last',
       ExpressionAttributeNames: {'#status': 'Status', '#message': 'StatusMessage', '#last': 'LastUpdateDateTime'},
       ExpressionAttributeValues: {':status': status, ':message': statusMessage, ':last': new Date().toISOString()}
+    };
+
+    const response: AWS.DynamoDB.DocumentClient.UpdateItemOutput = await this.dynamodb.update(item).promise();
+    this.logger.info(JSON.stringify(response));
+    return response;
+  }
+
+  public async updateResult(jobId: string, result: string): Promise<AWS.DynamoDB.DocumentClient.UpdateItemOutput> {
+    this.logger.info(`DynamoService.updateResult() ${jobId} ${result}`);
+
+    const item: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+      TableName: this.tableName,
+      Key: {JobId: jobId},
+      UpdateExpression: 'SET #result = :result',
+      ExpressionAttributeNames: {'#result': 'Result'},
+      ExpressionAttributeValues: {':result': result }
     };
 
     const response: AWS.DynamoDB.DocumentClient.UpdateItemOutput = await this.dynamodb.update(item).promise();
