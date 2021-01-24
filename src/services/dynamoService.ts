@@ -27,6 +27,27 @@ export class DynamoService {
     return data.Item;
   }
 
+  public async putJob(jobId: string, jobType: string, payload: string): Promise<AWS.DynamoDB.DocumentClient.PutItemOutput> {
+
+    const item: AWS.DynamoDB.DocumentClient.PutItemInputAttributeMap = {
+      JobId: jobId,
+      JobType: jobType,
+      Status: 'Created',
+      CreateDateTime: new Date().toISOString(),
+      Payload: payload
+    };
+
+    const output: AWS.DynamoDB.DocumentClient.PutItemOutput = await this.dynamodb
+      .put({
+        TableName: this.tableName,
+        Item: item
+      })
+      .promise();
+    
+    this.logger.info(JSON.stringify(output));
+    return output;
+  }
+
   public async updateStatus(jobId: string, status: string, statusMessage: string): Promise<AWS.DynamoDB.DocumentClient.UpdateItemOutput> {
     this.logger.info(`DynamoService.updateStatus() ${jobId} ${status} ${statusMessage}`);
 

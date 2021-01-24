@@ -1,4 +1,4 @@
-import {Context, SQSHandler} from 'aws-lambda';
+import {Context} from 'aws-lambda';
 import AWS from 'aws-sdk';
 import * as winston from 'winston';
 import {v4 as uuidv4} from 'uuid';
@@ -10,6 +10,10 @@ export interface JobSubmissionResponse {
   jobId: string;
   jobType: string;
 }
+//
+// This lambda is called from Connect, creates an SQS queue message (a "job") with Connect Event details 
+// and returns immediately with the created Job Id
+//
 export class JobSubmission {
   logger: winston.Logger;
 

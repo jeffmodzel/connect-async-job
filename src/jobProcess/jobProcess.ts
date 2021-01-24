@@ -2,19 +2,22 @@ import AWS from 'aws-sdk';
 import * as winston from 'winston';
 import {LoggerFactory} from '../lib/loggerFactory';
 import {SQSEvent, SQSRecord} from 'aws-lambda';
+import {DynamoService} from '../services/dynamoService';
 
 export interface JobProcessResponse {
   numberOfRecords: number;
 }
 
+//
+// Listens on SQS queue for new jobs to start. Writes job data to Dynamo, determines job type 
+// and executes correct job Lambda for job type (asynchronously). Returns immediately.
+//
 export class JobProcess {
   logger: winston.Logger;
-  tableName: string;
 
-  constructor(private dynamodb: AWS.DynamoDB.DocumentClient) {
+  constructor(private dynamoService: DynamoService) {
     this.logger = LoggerFactory.getLogger();
     this.logger.info('JobProcess.constructor()');
-    this.tableName = process.env['JOB_TABLE'] as string;
   }
 
   public async handler(event: SQSEvent): Promise<JobProcessResponse> {
@@ -53,17 +56,10 @@ export class JobProcess {
     this.logger.info(`Job Id: ${jobId}`);
     this.logger.info(`Job type: ${jobType}`);
 
-    const item: AWS.DynamoDB.DocumentClient.PutItemInputAttributeMap = {
-      JobId: jobId,
-      JobType: jobType,
-      Status: 'Created',
-      CreateDateTime: new Date().toISOString(),
-      Payload: record.body
-    };
-
-    const response: AWS.DynamoDB.DocumentClient.PutItemOutput = await this.putDynamo(item);
+    // Create job in Dynamo
+    const response: AWS.DynamoDB.DocumentClient.PutItemOutput = await this.dynamoService.putJob(jobId, jobType, record.body);
     this.logger.info(JSON.stringify(response));
-
+    
     await this.executeJobLambda(jobId, jobType);
   }
 
@@ -74,10 +70,9 @@ export class JobProcess {
         await this.executeLookupCustomer(jobId);
         break;
       default:
-        this.logger.info('unknown job type');
-        await this.updateDynamoSetErrorStatus(jobId, `Unknown job type: ${jobType}`);
+        this.logger.info(`Unknown job type: ${jobType}`);
+        await this.dynamoService.updateStatus(jobId, 'Error', `Unknown job type: ${jobType}`);
     }
-
   }
 
   private async executeLookupCustomer(jobId: string) {
@@ -104,33 +99,4 @@ export class JobProcess {
     this.logger.info(JSON.stringify(response));
   }
 
-  // To do refactor to use DynamoService
-  private async updateDynamoSetErrorStatus(jobId: string, errorMessage: string) {
-    this.logger.info(`updateDynamoSetErrorStatus() ${jobId} ${errorMessage}`);
-
-    const item: AWS.DynamoDB.DocumentClient.UpdateItemInput = { 
-      TableName: this.tableName,
-      Key: { 'JobId': jobId },
-      UpdateExpression: 'SET #status = :status, #message = :message',
-      ExpressionAttributeNames: { '#status': 'Status', '#message': 'StatusMessage'},
-      ExpressionAttributeValues: { ':status': 'Error', ':message': errorMessage }
-    };
-    
-    const response: AWS.DynamoDB.DocumentClient.UpdateItemOutput = await this.dynamodb.update(item).promise();
-    this.logger.info(JSON.stringify(response));
-  }
-
-  private async putDynamo(item: AWS.DynamoDB.DocumentClient.PutItemInputAttributeMap): Promise<AWS.DynamoDB.DocumentClient.PutItemOutput> {
-    this.logger.info('putDynamo()');
-    this.logger.info(JSON.stringify(item));
-
-    const output: AWS.DynamoDB.DocumentClient.PutItemOutput = await this.dynamodb
-      .put({
-        TableName: this.tableName,
-        Item: item
-      })
-      .promise();
-        
-    return output;
-  }
 }
