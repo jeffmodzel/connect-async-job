@@ -2,6 +2,8 @@
 
 - add LOG_LEVEL global env to template.yaml
 - add dead letter queue to main queue
+- add TTL to dynamo table and/or make it optional in template
+- consistency in interface responses/connect params - camel or Pascal
 
 Set timeout in template to greater than 8 seconds for non-Connect lambda
 https://docs.aws.amazon.com/lambda/latest/dg/with-sqs-example-use-app-spec.html

@@ -3,6 +3,16 @@ import * as winston from 'winston';
 import {LoggerFactory} from '../lib/loggerFactory';
 import {AttributeMap} from '../interfaces';
 import {DynamoService} from '../services/dynamoService';
+
+//
+// Simulates a long running task (a "job") of looking up customer data
+//
+
+export interface Result {
+  WaitSeconds: number; 
+  MessageSSML: string;
+  CustomerData: string;
+}
 export class JobLookupCustomer {
   logger: winston.Logger;
   tableName: string;
@@ -22,17 +32,19 @@ export class JobLookupCustomer {
       this.logger.info(JSON.stringify(item));
       await this.dynamoService.updateStatus(event.JobId, 'In Progress', 'Lookup Customer job started...');
 
-      this.logger.info('Start simulate long running tasks...');
-      await new Promise(resolve => setTimeout(resolve, 10000));
-      const fakeResult: any = {
-        customerId: 123,
-        customerName: 'John Smith',
-        customerStatus: 'Good',
-        someOtherField: 'Some other value'
+      // Generate a random time between 10 and 30 seconds, and wait
+      this.logger.info('Start simulate long running tasks...');      
+      const waitSeconds: number = 10 + Math.floor(Math.random() * 21);
+      await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+
+      const result: Result = {
+        WaitSeconds: waitSeconds,
+        MessageSSML: `<speak>This simulated customer lookup job took ${waitSeconds} seconds</speak>`,
+        CustomerData: 'some customer data'
       };
       this.logger.info('End simulate long running tasks');
 
-      await this.dynamoService.updateResult(event.JobId, JSON.stringify(fakeResult));
+      await this.dynamoService.updateResult(event.JobId, JSON.stringify(result));
       await this.dynamoService.updateStatus(event.JobId, 'Complete', 'Lookup Customer job success');
     } catch (error) {
       this.logger.error('Error occurred in Lambda');

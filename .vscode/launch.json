@@ -17,6 +17,21 @@
       "sourceMaps": true
     },
     {
+      "name": "JobStatusFunction",
+      "type": "node",
+      "request": "attach",
+      "address": "localhost",
+      "port": 5858,
+      "localRoot": "${workspaceRoot}/.aws-sam/build/JobStatusFunction",
+      "remoteRoot": "/var/task",
+      "protocol": "inspector",
+      "stopOnEntry": false,
+      "outFiles": [
+        "${workspaceRoot}/.aws-sam/build/JobStatusFunction/app.js"
+      ],
+      "sourceMaps": true
+    },
+    {
       "name": "JobProcessFunction",
       "type": "node",
       "request": "attach",
