@@ -31,7 +31,7 @@ export class JobStatus {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async handler(event: ConnectContactFlowEvent): Promise<JobStatusResponse> {
-    this.logger.info('handler()');
+    this.logger.info('JobStatus.handler()');
     this.logger.info(JSON.stringify(event));
 
     const response: JobStatusResponse = {
