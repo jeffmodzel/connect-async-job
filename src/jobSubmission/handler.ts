@@ -1,11 +1,11 @@
-import {JobSubmission, JobSubmissionResponse} from './jobSubmission';
-import {Context} from 'aws-lambda';
-import {ConnectEvent} from '../interfaces';
+import { JobSubmission } from './jobSubmission';
+import { Context, ConnectContactFlowEvent, ConnectContactFlowResult, ConnectContactFlowHandler } from 'aws-lambda';
 
 const jobSubmission: JobSubmission = new JobSubmission();
 
-async function handler(event: ConnectEvent, context: Context): Promise<JobSubmissionResponse> {
-  return await jobSubmission.handler(event, context);
-}
-
-export {handler};
+export const handler: ConnectContactFlowHandler = async (
+  event: ConnectContactFlowEvent,
+  context: Context
+): Promise<ConnectContactFlowResult> => {
+  return (await jobSubmission.handler(event, context) as unknown) as ConnectContactFlowResult;
+};

@@ -3,6 +3,8 @@ import * as winston from 'winston';
 import {LoggerFactory} from '../lib/loggerFactory';
 import {SQSEvent, SQSRecord} from 'aws-lambda';
 import {DynamoService} from '../services/dynamoService';
+import {JobStatus} from '../jobStatus/jobStatus';
+
 
 export interface JobProcessResponse {
   numberOfRecords: number;
@@ -71,7 +73,7 @@ export class JobProcess {
         break;
       default:
         this.logger.info(`Unknown job type: ${jobType}`);
-        await this.dynamoService.updateStatus(jobId, 'Error', `Unknown job type: ${jobType}`);
+        await this.dynamoService.updateStatus(jobId, JobStatus.ERROR, `Unknown job type: ${jobType}`);
     }
   }
 
@@ -89,7 +91,7 @@ export class JobProcess {
     const params: AWS.Lambda.InvocationRequest = {
       FunctionName: arn,
       Payload: JSON.stringify(request),
-      InvocationType: 'Event'
+      InvocationType: 'Event' // asynchronous
     };
 
     this.logger.info('Invoke lambda with params:');

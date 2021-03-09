@@ -1,22 +1,28 @@
-import {ConnectContactFlowEvent} from 'aws-lambda';
-import AWS from 'aws-sdk';
+import { ConnectContactFlowEvent } from 'aws-lambda';
 import * as winston from 'winston';
-import {LoggerFactory} from '../lib/loggerFactory';
-import {DynamoService} from '../services/dynamoService';
+import { LoggerFactory } from '../lib/loggerFactory';
+import { DynamoService } from '../services/dynamoService';
+import { AttributeMap, JobDynamoItem } from '../interfaces';
 
 export interface JobStatusResponse {
+  JobExists: boolean;
   IsComplete: boolean;
   InProgress: boolean;
   HasError: boolean;
-  JobExists: boolean;
+  ErrorMessage: string;
+  Result: AttributeMap;
 }
-//need to figure out how to add job data?
 
-// add description
 //
-
+// Gets a job's status and returns job result, if present
+//
 export class JobStatus {
   logger: winston.Logger;
+
+  public static readonly CREATED: string = 'CREATED';
+  public static readonly COMPLETE: string = 'COMPLETE';
+  public static readonly IN_PROGRESS: string = 'IN PROGRESS';
+  public static readonly ERROR: string = 'ERROR';
 
   constructor(private dynamoService: DynamoService) {
     this.logger = LoggerFactory.getLogger();
@@ -32,18 +38,31 @@ export class JobStatus {
       IsComplete: false,
       InProgress: false,
       HasError: false,
-      JobExists: false
+      JobExists: false,
+      Result: {},
+      ErrorMessage: ''
     };
 
     try {
       const jobId: string = event.Details.Parameters.JobId;
-      const jobType: string = event.Details.Parameters.JobType;
-      
-      const jobItem:any = await this.dynamoService.getJob(jobId);
+      //const jobType: string = event.Details.Parameters.JobType;
+
+      const jobItem: JobDynamoItem = await this.dynamoService.getJob(jobId) as JobDynamoItem;
       this.logger.info(JSON.stringify(jobItem));
-  
+
       if (jobItem) {
         response.JobExists = true;
+
+        if (jobItem.Status === 'Complete') {
+          response.IsComplete = true;
+          response.Result = JSON.parse(jobItem.Result);
+        } else if (jobItem.Status === 'In Progress') {
+          response.InProgress = true;
+        } else if (jobItem.Status === 'Error') {
+          response.HasError = true;
+          response.ErrorMessage = jobItem.StatusMessage;
+        }
+
       }
 
       this.logger.info(JSON.stringify(response));

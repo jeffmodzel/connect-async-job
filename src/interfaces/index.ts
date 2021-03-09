@@ -1,1 +1,1 @@
-export * from './connect-event.interface';
+export * from './common';

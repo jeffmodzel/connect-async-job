@@ -1,8 +1,7 @@
-import {Context} from 'aws-lambda';
+import {Context,  ConnectContactFlowEvent} from 'aws-lambda';
 import AWS from 'aws-sdk';
 import * as winston from 'winston';
 import {v4 as uuidv4} from 'uuid';
-import {ConnectEvent} from '../interfaces';
 import {LoggerFactory} from '../lib/loggerFactory';
 
 export interface JobSubmissionResponse {
@@ -23,7 +22,7 @@ export class JobSubmission {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async handler(event: ConnectEvent, context: Context): Promise<JobSubmissionResponse> {
+  public async handler(event: ConnectContactFlowEvent, context: Context): Promise<JobSubmissionResponse> {
     this.logger.info('handler()');
     this.logger.info(JSON.stringify(event));
 

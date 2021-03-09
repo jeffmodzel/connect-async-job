@@ -8,7 +8,7 @@ import {DynamoService} from '../services/dynamoService';
 // Simulates a long running task (a "job") of looking up customer data
 //
 
-export interface Result {
+export interface LookupCustomerResult {
   WaitSeconds: number; 
   MessageSSML: string;
   CustomerData: string;
@@ -37,7 +37,7 @@ export class JobLookupCustomer {
       const waitSeconds: number = 10 + Math.floor(Math.random() * 21);
       await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
 
-      const result: Result = {
+      const result: LookupCustomerResult = {
         WaitSeconds: waitSeconds,
         MessageSSML: `<speak>This simulated customer lookup job took ${waitSeconds} seconds</speak>`,
         CustomerData: 'some customer data'

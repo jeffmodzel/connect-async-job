@@ -7,7 +7,7 @@ profile="vf-team7"
 buildOutputPath=".aws-sam/build"
 
 connectInstanceId="df247932-05d7-449f-9774-9575b95c047f"
-tags="Application=Connect Owner=Modzel"
+tags="Application=Connect Owner=Modzel DoNotDelete=True"
 parameterOverrides="ConnectInstanceId=$connectInstanceId"
 
 # Package the SAM application
