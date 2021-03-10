@@ -10,7 +10,7 @@ export interface JobStatusResponse {
   InProgress: boolean;
   HasError: boolean;
   ErrorMessage: string;
-  Result: AttributeMap;
+  [key: string]: string | boolean | number;
 }
 
 //
@@ -34,12 +34,11 @@ export class JobStatus {
     this.logger.info('JobStatus.handler()');
     this.logger.info(JSON.stringify(event));
 
-    const response: JobStatusResponse = {
+    let response: JobStatusResponse = {
       IsComplete: false,
       InProgress: false,
       HasError: false,
       JobExists: false,
-      Result: {},
       ErrorMessage: ''
     };
 
@@ -54,8 +53,10 @@ export class JobStatus {
         response.JobExists = true;
 
         if (jobItem.Status === 'Complete') {
+          //response.IsComplete = true;
+          //response.Result = JSON.parse(jobItem.Result);
+          response = {...response, ...JSON.parse(jobItem.Result) };
           response.IsComplete = true;
-          response.Result = JSON.parse(jobItem.Result);
         } else if (jobItem.Status === 'In Progress') {
           response.InProgress = true;
         } else if (jobItem.Status === 'Error') {
