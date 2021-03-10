@@ -10,4 +10,10 @@ This solution uses the concept of a "job". A job is submitted in the contact flo
 
 ## install
 
-To Do - update install instructions
+Update `deploy.sh` with appropriate params (profile, region, Connect instance id, bucket).
+
+```bash
+npm install
+./build-dev.sh
+./deploy.sh
+```
